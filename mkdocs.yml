@@ -1,0 +1,53 @@
+site_name: When Agreement Is an Illusion
+site_description: Statistical foundations of inter-annotator agreement — from observed agreement to Krippendorff's Alpha
+# site_url: https://<your-user>.github.io/krippendorff-alpha-article/
+
+repo_url: https://github.com/<your-user>/krippendorff-alpha-article
+edit_uri: edit/main/mkdocs_docs/
+
+theme:
+  name: material
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - content.code.copy
+    - search.suggest
+    - search.highlight
+
+plugins:
+  - search
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences
+  - pymdownx.snippets:
+      base_path: ["."]
+  - pymdownx.arithmatex:
+      generic: true
+
+extra_javascript:
+  - javascripts/mathjax.js
+  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
+
+nav:
+  - Home: index.md
+  - Article: article.md
+  - About: about.md
+
+docs_dir: mkdocs_docs

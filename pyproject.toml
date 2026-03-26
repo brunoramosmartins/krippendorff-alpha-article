@@ -1,0 +1,34 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "krippendorff-alpha-article"
+version = "0.1.0"
+description = "Technical article and code: inter-annotator agreement from first principles to Krippendorff's Alpha"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.10"
+authors = [{ name = "Bruno Ramos Martins" }]
+keywords = ["krippendorff", "inter-rater agreement", "kappa", "statistics", "annotation"]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "ruff>=0.9",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W"]
