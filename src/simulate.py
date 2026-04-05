@@ -16,6 +16,7 @@ Two sampling regimes:
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from typing import Literal
 
 import numpy as np
@@ -81,6 +82,7 @@ class SimulatedAnnotation:
         "pure_random",
         "_pi",
         "_rng",
+        "_noise_eps",
     )
 
     def __init__(
@@ -89,7 +91,7 @@ class SimulatedAnnotation:
         n_annotators: int,
         n_classes: int,
         *,
-        noise_level: float = 0.0,
+        noise_level: float | Sequence[float] | np.ndarray = 0.0,
         class_dist: ClassDistName | np.ndarray | list[float] = "uniform",
         missing_rate: float = 0.0,
         seed: int | None = None,
@@ -97,10 +99,20 @@ class SimulatedAnnotation:
     ) -> None:
         if n_items < 1 or n_annotators < 2 or n_classes < 2:
             raise ValueError("Require n_items >= 1, n_annotators >= 2, n_classes >= 2.")
-        if not 0.0 <= noise_level <= 1.0:
-            raise ValueError("noise_level must be in [0, 1].")
         if not 0.0 <= missing_rate <= 0.5:
             raise ValueError("missing_rate must be in [0, 0.5].")
+
+        if isinstance(noise_level, (int, float, np.floating)):
+            eps = np.full(n_annotators, float(noise_level), dtype=float)
+        else:
+            eps = np.asarray(list(noise_level), dtype=float).ravel()
+            if eps.shape[0] != n_annotators:
+                raise ValueError(
+                    "noise_level vector length "
+                    f"{eps.shape[0]} must equal n_annotators={n_annotators}."
+                )
+        if np.any((eps < 0.0) | (eps > 1.0)):
+            raise ValueError("Each noise_level entry must be in [0, 1].")
 
         if isinstance(class_dist, list):
             dist_arg: ClassDistName | np.ndarray = np.asarray(class_dist, dtype=float)
@@ -112,19 +124,19 @@ class SimulatedAnnotation:
         self.n_items = n_items
         self.n_annotators = n_annotators
         self.n_classes = n_classes
-        self.noise_level = float(noise_level)
+        self.noise_level = noise_level
         self.class_dist = class_dist
         self.missing_rate = float(missing_rate)
         self.seed = seed
         self.pure_random = bool(pure_random)
         self._pi = pi
         self._rng = np.random.default_rng(seed)
+        self._noise_eps = eps
 
     def generate(self) -> pd.DataFrame:
         """Build the annotation matrix (new draw; uses RNG state)."""
         rng = self._rng
         n, m, k = self.n_items, self.n_annotators, self.n_classes
-        eps = self.noise_level
 
         if self.pure_random:
             # i.i.d. labels ~ Categorical(pi) — independent across items and annotators
@@ -132,7 +144,7 @@ class SimulatedAnnotation:
             x = flat.reshape(n, m)
         else:
             truths = rng.choice(k, size=n, p=self._pi)
-            noise = rng.random((n, m)) < eps
+            noise = rng.random((n, m)) < self._noise_eps[np.newaxis, :]
             # Uniform error among the K-1 classes different from the latent truth
             aux = rng.integers(0, k - 1, size=(n, m))
             t_col = truths[:, None]

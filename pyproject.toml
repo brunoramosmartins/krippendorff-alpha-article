@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "krippendorff-alpha-article"
-version = "0.4.0"
+version = "0.5.0"
 description = "Technical article and code: inter-annotator agreement from first principles to Krippendorff's Alpha"
 readme = "README.md"
 license = { text = "MIT" }
@@ -32,3 +32,7 @@ target-version = "py310"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "W"]
+
+[tool.ruff.lint.per-file-ignores]
+# Scripts tweak sys.path then configure matplotlib before other imports.
+"scripts/*.py" = ["E402"]

@@ -19,13 +19,11 @@ docs:
 docs-serve:
 	$(PYTHON) -m mkdocs serve
 
-# Phase 4: implement scripts and uncomment invocations below
 experiments:
-	@echo "Experiments are stubs until Phase 4. Then run:"
-	@echo "  $(PYTHON) scripts/experiment_a_random.py"
-	@echo "  $(PYTHON) scripts/experiment_b_trap.py"
-	@echo "  $(PYTHON) scripts/experiment_c_llm.py"
-	@echo "  $(PYTHON) scripts/experiment_d_missing.py"
+	$(PYTHON) scripts/experiment_a_random.py
+	$(PYTHON) scripts/experiment_b_trap.py
+	$(PYTHON) scripts/experiment_c_llm.py
+	$(PYTHON) scripts/experiment_d_missing.py
 
 clean:
 	rm -rf site/ .pytest_cache .ruff_cache **/__pycache__
