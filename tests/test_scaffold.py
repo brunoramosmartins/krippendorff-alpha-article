@@ -4,4 +4,4 @@
 def test_src_package_version() -> None:
     import src
 
-    assert src.__version__ == "0.1.0"
+    assert src.__version__ == "0.2.0"
