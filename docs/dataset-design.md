@@ -49,6 +49,8 @@ P(X_{ij} = c' \mid Y_i = c) = \begin{cases}
 
 *Clarification for Phase 1 implementation:* the codebase will expose a flag or parameter for **“pure random raters”** (ignore \(Y_i\), i.i.d. uniform labels) versus **“noisy copy of truth”** as above.
 
+For **Phase 1 / issue #7** (convergence of empirical \(A_o\) to the independence baseline), set **`pure_random=True`**. That makes every cell i.i.d. \(\mathrm{Categorical}(\pi)\), so the theoretical benchmark is \(A_e=\sum_k\pi_k^2\) (e.g. \(1/K\) under uniform \(\pi\)); this matches the experiment “random annotators” in the roadmap. With **`pure_random=False`** and \(\varepsilon=1\), labels are still tied to latent \(Y_i\) and restricted to wrong categories only, so the marginal over \(K\) is **not** uniform and \(A_o\) need not approach \(1/K\).
+
 ### 2.2 Class distribution scenarios
 
 Let \(K=3\) for examples; generalise by normalising a length-\(K\) probability vector.

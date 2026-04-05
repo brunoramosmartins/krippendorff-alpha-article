@@ -1,6 +1,13 @@
 # When Agreement Is an Illusion
 
+[![CI](https://github.com/brunoramosmartins/krippendorff-alpha-article/actions/workflows/ci.yml/badge.svg)](https://github.com/brunoramosmartins/krippendorff-alpha-article/actions/workflows/ci.yml)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+
 Technical article (and reproducible code) on **inter-annotator agreement**: why raw **observed agreement** mixes signal and chance, how **Kappa**-style metrics correct for chance yet break under imbalance and missing data, and how **Krippendorff's Alpha** models **disagreement** in a way that generalises across raters and scales.
+
+If your GitHub username or repository name differs, update the CI badge URL above.
 
 ## Thesis (v0.1)
 
@@ -12,7 +19,7 @@ The full phased plan (phases 0–6, repo layout, Git workflow, issues, and deliv
 
 **[`roadmap-krippendorff-alpha-v3.md`](roadmap-krippendorff-alpha-v3.md)**
 
-Phase 0 deliverables (foundation) are in place under `docs/`, `article/`, `src/` (stubs), `scripts/` (stubs), `notebooks/`, `.github/`, and MkDocs under `mkdocs_docs/`.
+**Status (code):** Phase 0 (foundation) and Phase 1 (statistical foundation: `simulate`, `observed_agreement`, convergence figure) are implemented; Phase 2 adds **Cohen's** and **Fleiss'** kappa in `src/metrics.py`, theory in `notes/phase2-kappa.md`, and `figures/kappa_paradox.png`.
 
 ## Repository layout (short)
 
@@ -22,7 +29,7 @@ Phase 0 deliverables (foundation) are in place under `docs/`, `article/`, `src/`
 | `docs/` | Thesis, dataset design, outline |
 | `notes/` | Phase theory notes (Phase 1–3) |
 | `src/` | Simulations, loaders, metrics (implemented phase by phase) |
-| `scripts/` | Experiments A–D (Phase 4) |
+| `scripts/` | Phase plots + experiments A–D (Phase 4) |
 | `notebooks/` | Exploratory / presentation notebooks |
 | `figures/` | Generated plots (tracked when produced) |
 | `mkdocs_docs/` | Site pages; canonical article included from `article/` |
@@ -39,6 +46,14 @@ pip install -r requirements.txt
 pip install -e .
 
 pytest tests/ -q
+python -m ruff check src tests scripts
+```
+
+### Regenerate key figures
+
+```bash
+python scripts/phase1_convergence_plot.py
+python scripts/kappa_paradox_plot.py
 ```
 
 ### Documentation site (local)
@@ -57,7 +72,7 @@ On Unix-like shells, `make install`, `make test`, `make docs`, and `make experim
 
 ## Tech stack
 
-Python 3.10+, NumPy, pandas, SciPy, scikit-learn, matplotlib, seaborn, [krippendorff](https://pypi.org/project/krippendorff/), Jupyter, pytest, MkDocs Material.
+Python 3.10+, NumPy, pandas, SciPy, scikit-learn, matplotlib, seaborn, [krippendorff](https://pypi.org/project/krippendorff/), Jupyter, pytest, Ruff, MkDocs Material.
 
 ## Licence
 
