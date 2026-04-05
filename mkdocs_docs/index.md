@@ -10,4 +10,4 @@ Welcome. This site will host the technical article **Statistical Foundations of 
 
 ## Status
 
-Phase 0 (foundation) — planning documents and scaffold are in place. Theory notes, implementations, and experiments follow the phased roadmap.
+Phases 0–5: theory notes, metrics implementation, reproducible experiments (Phase 4), and a **full article draft** (Phase 5) are in place. See [Article](article.md) for the narrative; source lives in `article/krippendorff-alpha.md` in the repository.

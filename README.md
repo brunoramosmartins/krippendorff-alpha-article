@@ -19,7 +19,7 @@ The full phased plan (phases 0–6, repo layout, Git workflow, issues, and deliv
 
 **[`roadmap-krippendorff-alpha-v3.md`](roadmap-krippendorff-alpha-v3.md)**
 
-**Status (code):** Phases 0–2 are implemented as above; **Phase 3** adds Krippendorff's alpha: `src/coincidence.py`, `src/distances.py`, `krippendorff_alpha()` in `src/metrics.py` (validated against the `krippendorff` package), `notes/phase3-alpha.md`, and `notebooks/03_alpha_derivation.ipynb`.
+**Status (code):** Phases 0–3 implement theory and metrics as in the roadmap; **Phase 4** adds reproducible experiments A–D (`scripts/experiment_*.py`, `figures/`); **Phase 5** adds the full draft article in `article/krippendorff-alpha.md` (also rendered under MkDocs `article.md`). See `roadmap-krippendorff-alpha-v3.md` for the full phased plan.
 
 ## Repository layout (short)
 
@@ -55,6 +55,16 @@ python -m ruff check src tests scripts
 python scripts/phase1_convergence_plot.py
 python scripts/kappa_paradox_plot.py
 ```
+
+### Export article for another site (e.g. portfolio on GitHub Pages)
+
+The long-form article is `article/krippendorff-alpha.md` (YAML front matter + structured sections). To copy it into another repository with self-contained image paths:
+
+```bash
+python scripts/export_article_for_portfolio.py --out path/to/your-portfolio/.../krippendorff-alpha
+```
+
+See `article/README.md` for layout and metadata notes.
 
 ### Documentation site (local)
 
