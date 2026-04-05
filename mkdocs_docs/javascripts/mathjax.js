@@ -12,5 +12,8 @@ window.MathJax = {
 };
 
 document$.subscribe(() => {
-  MathJax.typesetPromise();
+  const body = document.querySelector(".md-typeset");
+  if (body && window.MathJax?.typesetPromise) {
+    MathJax.typesetPromise([body]).catch((err) => console.warn("MathJax:", err));
+  }
 });

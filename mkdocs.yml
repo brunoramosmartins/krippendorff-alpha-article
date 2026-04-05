@@ -26,6 +26,7 @@ theme:
     - navigation.tabs
     - navigation.sections
     - content.code.copy
+    - content.math
     - search.suggest
     - search.highlight
 
@@ -39,8 +40,9 @@ markdown_extensions:
   - pymdownx.highlight:
       anchor_linenums: true
   - pymdownx.superfences
+  # mkdocs_docs first so `--8<-- "_article_include.md"` resolves next to article.md
   - pymdownx.snippets:
-      base_path: ["."]
+      base_path: ["mkdocs_docs", "."]
   - pymdownx.arithmatex:
       generic: true
 
