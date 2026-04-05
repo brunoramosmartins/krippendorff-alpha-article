@@ -70,10 +70,7 @@ Fix an item $i$. Let $S_i$ be the set of unordered rater pairs $(j,\ell)$, $j<\e
 The **observed agreement** is the fraction of comparable pairs that agree:
 
 $$
-A_o
-=
-\frac{\displaystyle\sum_{i=1}^n \sum_{(j,\ell)\in S_i} I_{ij\ell}}
-     {\displaystyle\sum_{i=1}^n |S_i|}.
+A_o = \frac{\displaystyle\sum_{i=1}^n \sum_{(j,\ell)\in S_i} I_{ij\ell}}{\displaystyle\sum_{i=1}^n |S_i|}.
 $$
 
 So $A_o$ is a **sample proportion** of agreeing pairs, pooled over items. It estimates the probability that two randomly drawn **observed** ratings on the **same** item match, under the implicit design that weights each eligible pair equally.
@@ -107,11 +104,7 @@ Hence the framing: treat $A_o$ as an **estimator** of overlap under your samplin
 **Model.** Two annotators assign labels **independently**, each following the same category distribution $\pi = (\pi_1,\ldots,\pi_K)$, $\pi_k \ge 0$, $\sum_k \pi_k = 1$. Then
 
 $$
-A_e
-=
-P(\text{both pick the same category})
-=
-\sum_{k=1}^K \pi_k^2.
+A_e = P(\text{both pick the same category}) = \sum_{k=1}^K \pi_k^2.
 $$
 
 For **uniform** $\pi_k = 1/K$, we get $A_e = K \cdot (1/K)^2 = 1/K$. With $K=2$, independent coin-flip labellers agree half the time **with no shared truth**. With $K=3$, $A_e = 1/3$.
