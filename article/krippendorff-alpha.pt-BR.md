@@ -26,29 +26,31 @@ article_format:
 
 *Fundamentos estatísticos do acordo entre anotadores — do acordo observado ao alpha de Krippendorff.*
 
-> **Tese.** Um índice de acordo de 0,80 entre anotadores é com mais frequência evidência de ruído estruturado e prevalência do que de consenso verdadeiro quando o acordo por acaso não é contabilizado. Métricas como acordo bruto tratam sobreposição como sinal; o alpha de Krippendorff modela **desacordo** face a um referencial de aleatoriedade e generaliza-se a vários anotadores, dados faltantes e escalas de medição.
+> **Tese.** Um índice de acordo de 0,80 pode ser enganador quando o acordo por acaso não é explicitamente modelado. Sob desbalanceamento de classes e marginais independentes, sobreposição observada alta emerge sem compreensão partilhada. O alpha de Krippendorff aborda isso ao modelar **desacordo** face a um referencial de aleatoriedade e generalizar-se a vários anotadores, dados faltantes e escalas de medição.
 
 ---
 
 ## 1. Introdução
 
-Os seus anotadores concordaram em 80% dos itens. O painel fica verde; o modelo segue para produção. Esse número é **quase certamente enganador** como resumo de confiabilidade.
+Você conduz um exercício de anotação com um pequeno painel de analistas. A tarefa é simples: classificar cada item de trabalho numa de algumas categorias predefinidas com base na descrição. Em paralelo, você solicita a um LLM que faça a mesma classificação. A expectativa é direta — humanos fornecem a referência, o modelo os aproxima.
 
-O **acordo observado** responde a uma pergunta estreita: que fração de **pares** de anotadores comparáveis recebeu a mesma etiqueta? **Não** responde: anotadores independentes com o mesmo comportamento marginal já concordariam com essa frequência? Quando a segunda resposta é sim, um valor alto na primeira diz pouco sobre leitura estável da tarefa. Pode refletir sobretudo **prevalência** (uma categoria domina) e **amostragem**, não consenso substantivo.
+O que acontece é menos confortável. Os anotadores não concordam consistentemente entre si. O mesmo item é mapeado para categorias diferentes dependendo de quem o lê. Enquanto isso, o LLM — dado um prompt fixo — produz saídas estáveis e repetíveis. Nesse ponto surge uma pergunta natural: se humanos não concordam entre si, o que exatamente estamos pedindo ao modelo que replique?
 
-Isso pesa em **avaliação de LLMs**. Imagine um fluxo em que humanos e um modelo fine-tuned classificam projetos por marca. Negócio e jurídico querem um único número: “Concordamos?” Se só reportar a proporção de pares (humano, LLM) em acordo, um modelo que copia a classe majoritária pode parecer excelente sem julgamento cuidadoso. O mesmo armadilha aparece em codificação clínica, moderação de conteúdo e qualquer domínio com etiquetas enviesadas.
+Encontrei esse cenário pela primeira vez num projeto de trabalho onde a conclusão pragmática foi que o LLM pode ser preferível justamente por ser consistente, mesmo que humanos não o sejam. Essa conclusão é operacionalmente atraente — mas estatisticamente frágil.
 
-A linguística computacional usa coeficientes de acordo há décadas (Artstein e Poesio, 2008). A maturidade em torno de $\kappa$ é desigual: leaderboards ainda misturam métricas **estilo acurácia** com tarefas **carregadas de prevalência**. Com **modelos foundation** como anotadores por defeito, a pergunta deixa de ser “batemos 80%?” e passa a ser se a automação **acompanha** a permutabilidade humana sob as mesmas instruções — o que empurra para coeficientes que toleram observação **parcial** e respeitam a **escala**.
+Um acordo observado alto, seja entre humanos ou entre humanos e um modelo, não indica necessariamente compreensão partilhada. Pode refletir **prevalência** (uma categoria domina), viés nas distribuições marginais, ou aleatoriedade estruturada. Sob distribuições de classes enviesadas, anotadores independentes que não partilham sinal latente podem ainda concordar em mais de metade dos itens — e um modelo que sombra a classe majoritária pode parecer excelente sem julgamento cuidadoso.
+
+A linguística computacional usa coeficientes de acordo desde a era da anotação de corpora (Artstein e Poesio, 2008), mas a maturidade em torno de $\kappa$ permanece desigual: leaderboards ainda misturam resumos **estilo acurácia** com tarefas **carregadas de prevalência**. Com **modelos foundation** como anotadores por defeito — anotadores determinísticos condicionados a prompts — a pergunta deixa de ser “batemos 80%?” e passa a ser se a automação **acompanha** a permutabilidade humana sob as mesmas instruções. Isso empurra para coeficientes que toleram observação **parcial** e respeitam a **escala**.
 
 Este artigo segue um arco:
 
 1. Formalizar o acordo como **estimador** e separar **sinal** de **acaso** (Secções 2–3).
-2. Apresentar $\kappa$ de **Cohen** e **Fleiss** como correção padrão, e onde **falham** (4–5).
-3. Reformular confiabilidade via **desacordo** e **matriz de coincidências**, até ao **alpha** de Krippendorff (6–7).
-4. **Validar** com quatro simulações controladas (8).
-5. Fechar com **guia prático** e limites honestos (9–10).
+2. Apresentar $\kappa$ de **Cohen** e **Fleiss** como correção padrão, e onde **falham** (Secções 4–5).
+3. Reformular confiabilidade via **desacordo** e **matriz de coincidências**, até ao $\alpha$ de **Krippendorff** (Secções 6–7).
+4. **Validar** com quatro simulações controladas (Secção 8).
+5. Fechar com **guia prático** e limites honestos (Secções 9–10).
 
-**Notação:** $K$ categorias, $n$ itens, $m$ anotadores salvo indicação contrária. Matriz $(X_{ij})$, $X_{ij}\in\{1,\ldots,K\}$ (o código pode usar $0,\ldots,K-1$). Julgamentos faltantes quando indicado.
+**Notação.** $K$ categorias, $n$ itens (unidades), $m$ anotadores salvo indicação contrária. A matriz de anotação é $(X_{ij})$ com $X_{ij} \in \{1,\ldots,K\}$. Julgamentos faltantes quando indicado.
 
 ---
 
@@ -56,9 +58,17 @@ Este artigo segue um arco:
 
 ### 2.1 O problema da anotação
 
-Temos um **estudo de confiabilidade**: vários anotadores atribuem uma de $K$ categorias **nominais** a cada um de $n$ itens. Sem padrão-ouro; o objetivo é quantificar com que consistência os anotadores **reproduzem** os mesmos juízos sobre o mesmo conteúdo — **confiabilidade** (replicabilidade do processo), não **validade** (se as categorias correspondem ao mundo).
+Consideramos um estudo de confiabilidade em que múltiplos anotadores atribuem uma de $K$ categorias nominais a cada um de $n$ itens. Este setup parece enganosamente simples. Na prática, corresponde frequentemente a tarefas como categorizar itens de trabalho por descrições textuais, atribuir etiquetas em pipelines de NLP, ou avaliar saídas de modelos face ao julgamento humano.
 
-Pode haver alta confiabilidade e baixa validade (todos aplicam o mesmo guia errado) e o inverso. Este texto trata **só** da primeira questão: se o **procedimento** de anotação é estável entre pessoas e, por extensão, se um sistema automatizado que as imita está alinhado num sentido **replicável**.
+Crucialmente, **nenhuma verdade de referência é diretamente observada**. O que observamos é uma coleção de julgamentos humanos, cada um moldado por interpretação, ambiguidade e viés individual. Não estamos a medir acurácia — estamos a medir a **consistência** de um processo de medição sob aplicação repetida.
+
+No exemplo motivador da introdução, anotadores diferentes discordavam frequentemente sobre o mesmo item — não por descuido, mas porque a tarefa permitia múltiplas interpretações plausíveis. O LLM, por contraste, impunha uma única interpretação via prompt fixo. Isso destaca o objeto central de estudo: **confiabilidade não diz respeito a correção, mas a se o processo é reproduzível entre agentes**.
+
+A distinção entre **confiabilidade** (replicabilidade do procedimento) e **validade** (se as categorias correspondem ao mundo) é fundamental. Pode haver alta confiabilidade e baixa validade — todos aplicam o mesmo guia errado — e o inverso. Este texto trata **apenas** de confiabilidade. Afirmações sobre verdade de referência ou utilidade a jusante requerem evidência adicional.
+
+Se anotadores discordam, o problema pode não ser que o acordo é baixo — pode ser que a tarefa não define uma única verdade latente.
+
+Formalmente, representamos os dados como uma matriz de anotação $(X_{ij})$, onde $X_{ij} \in \{1,\ldots,K\}$ é a etiqueta atribuída pelo anotador $j$ ao item $i$. Entradas faltantes são permitidas, refletindo cenários reais de anotação onde nem todo anotador etiqueta todo item.
 
 ### 2.2 Acordo observado por pares
 
@@ -88,7 +98,23 @@ Coincide com o $A_o$ por pares dentro do item em desenhos simples e balanceados,
 
 $A_o$ é uma estatística **descritiva** clara. **Não** mede “quanto melhor que o acaso” age o painel. Dois anotadores independentes com distribuição $\pi$ concordam com probabilidade $\sum_k\pi_k^2$, muitas vezes bem acima de zero. Se o seu $A_o$ reportado está perto disso, os dados são compatíveis com **independência**, não com verdade latente partilhada.
 
-Como qualquer proporção, $A_o$ tem **variabilidade amostral**; nos experimentos usa-se $n=10{,}000$ em parte para curvas estáveis. Na prática, use intervalos de confiança e vistas desagregadas.
+Como qualquer proporção, $A_o$ tem **variabilidade amostral**; nos experimentos usa-se $n=10{,}000$ em parte para curvas estáveis. Na prática, complemente estimativas pontuais com **intervalos de confiança** (bootstrap sobre itens é comum) e com vistas **desagregadas** (acordo por estrato, matrizes de confusão).
+
+Logo, o enquadramento: trate $A_o$ como um **estimador** de sobreposição sob o seu esquema amostral, e pergunte sempre contra que **referencial** ele deveria ser comparado.
+
+### 2.5 Dois processos geradores de dados
+
+Os experimentos deste artigo apoiam-se em dois modelos generativos distintos. Confundi-los leva a interpretações erradas, por isso enunciamo-los explicitamente.
+
+**Modelo 1 — Etiquetagem puramente aleatória (sem sinal).** Cada anotador sorteia $X_{ij} \sim \pi$ independentemente. Não há verdade latente por item; o acordo surge **apenas** de marginais partilhadas. Este modelo é a hipótese nula para as Secções 3 e 8.1.
+
+**Modelo 2 — Anotação ruidosa em torno de verdade latente.** Cada item $i$ tem uma etiqueta verdadeira latente $Y_i \sim \pi$. Cada anotador observa $Y_i$ com ruído:
+
+$$P(X_{ij} = k \mid Y_i) = \begin{cases} 1 - \varepsilon & \text{se } k = Y_i, \\ \varepsilon / (K-1) & \text{caso contrário.} \end{cases}$$
+
+Aqui $\varepsilon \in [0, 1]$ controla o ruído de anotação. Com $\varepsilon = 0$, todos os anotadores concordam perfeitamente; com $\varepsilon = (K-1)/K$, o Modelo 2 reduz-se ao Modelo 1. Os Experimentos B, C e D usam este modelo com $\varepsilon$ e $\pi$ variáveis.
+
+A distinção importa: sob o Modelo 1, **qualquer** acordo observado é puro acaso. Sob o Modelo 2, o acordo decompõe-se numa componente de **sinal** (verdade latente partilhada) e numa componente de **acaso** (sobreposição marginal). Os coeficientes deste artigo destinam-se a remover a componente de acaso — mas pressupõem que o ruído é **simétrico e independente por item**. Erros estruturados (e.g. um LLM que sistematicamente sobreprevê a classe majoritária) violam este pressuposto e requerem ferramentas diagnósticas adicionais além do que $\alpha$ sozinho fornece (ver Secção 9.5).
 
 ---
 
@@ -96,7 +122,7 @@ Como qualquer proporção, $A_o$ tem **variabilidade amostral**; nos experimento
 
 ### 3.1 Acordo esperado sob independência
 
-**Modelo.** Dois anotadores etiquetam **independentemente**, cada um com a mesma distribuição $\pi=(\pi_1,\ldots,\pi_K)$. Então
+**Modelo.** Dois anotadores etiquetam **independentemente**, cada um com a mesma distribuição $\pi=(\pi_1,\ldots,\pi_K)$, $\pi_k \ge 0$, $\sum_k \pi_k = 1$ (Modelo 1 da Secção 2.5). Então
 
 $$
 A_e = P(\text{ambos na mesma categoria}) = \sum_{k=1}^K \pi_k^2.
@@ -122,13 +148,15 @@ Se cada célula da matriz é **independente** $\sim\pi$ (sem verdade latente por
 
 **“Aleatório” não é “acordo zero”**; é acordo ao nível de **acaso** das marginais.
 
-### 3.3 Verificação empírica
+### 3.3 Verificação empírica: convergência para $\sum_k\pi_k^2$
 
-A Fase 1 do código simula anotadores i.i.d. puramente aleatórios; o $A_o$ empírico concentra-se em $\sum_k\pi_k^2$.
+O código do repositório simula anotadores do Modelo 1 e acompanha $A_o$ à medida que o número de itens cresce. A simulação confirma a teoria: o acordo empírico concentra-se em $\sum_k\pi_k^2$. Se dados reais se comportassem assim, o processo de anotação não carregaria nenhum sinal específico por item. Estudos reais normalmente violam essa premissa — razão pela qual precisamos de coeficientes que separem acordo estruturado de sobreposição movida pela prevalência.
 
-![Convergência simulada do acordo observado ao referencial de independência.](../figures/random_agreement_convergence.png)
+![Convergência simulada do acordo observado ao referencial de independência sob etiquetagem aleatória i.i.d.](../figures/random_agreement_convergence.png)
 
-**Figura 1.** $A_o$ empírico aproxima $A_e=\sum_k\pi_k^2$ quando $n$ cresce.
+**Figura 1.** Anotadores aleatórios i.i.d.: o acordo observado empírico aproxima o acordo esperado teórico $A_e=\sum_k\pi_k^2$ à medida que o tamanho amostral cresce.
+
+A implicação é clara: $A_o$ sozinho não consegue distinguir entre consenso genuíno e sobreposição movida pela prevalência. Precisamos de uma correção que **subtraia** o referencial de acaso antes de interpretar o que resta. É exatamente isso que a família Kappa oferece.
 
 ---
 
@@ -271,13 +299,13 @@ Quatro simulações (Fase 4 do código) isolam propriedades de $A_o$, $\kappa_F$
 
 São **sintéticas** de propósito: alvos analíticos existem para etiquetagem aleatória, e varrimentos sobre ruído e desbalanceamento são baratos de repetir. Traduzir as lições qualitativas para uma API de LLM real requer camadas adicionais (calibração, prompts adversariais, fatores humanos) que ficam fora deste texto — mas as **armadilhas algébricas** do acordo bruto e os **limites estruturais** de Fleiss permanecem.
 
-### 8.1 A — Anotadores aleatórios
+### 8.1 A — Anotadores aleatórios (teste de sanidade)
 
-**Setup.** Etiquetagem i.i.d. pura, categorias uniformes. Varrimento de $K \in \{2,\ldots,10\}$ com $n=10{,}000$, $m=5$.
+**Setup.** Modelo 1 (etiquetagem puramente aleatória), $\pi$ uniforme, varrimento de $K \in \{2,\ldots,10\}$ com $n=10{,}000$, $m=5$.
 
 **Expectativa.** $A_o \approx 1/K$; $\kappa_F \approx 0$; $\alpha \approx 0$.
 
-**Resultado.** As curvas empíricas correspondem à teoria dentro de tolerância apertada. Este é o **teste de sanidade**: coeficientes corrigidos pelo acaso anulam-se quando não há estrutura partilhada além da independência. Se só reportar $A_o$ e variar o número de categorias entre estudos, a escala **bruta** move-se com $1/K$ mesmo quando o comportamento é “maximamente não informativo”.
+**Resultado.** As curvas empíricas correspondem à teoria dentro de tolerância apertada. Este é um **teste de sanidade**, não uma descoberta: coeficientes corrigidos pelo acaso anulam-se quando não há estrutura partilhada. A sobreposição quase perfeita entre a curva de $A_o$ e $1/K$ é uma propriedade do modelo, não um bug — simulamos exatamente o cenário analítico.
 
 ![Experimento A: $A_o$, $\kappa_F$ e $\alpha$ para anotadores aleatórios i.i.d. ao longo de $K$.](../figures/exp_a_random_metrics.png)
 
@@ -285,13 +313,17 @@ São **sintéticas** de propósito: alvos analíticos existem para etiquetagem a
 
 ### 8.2 B — Armadilha do alto acordo
 
-**Setup.** Forte enviesamento de classe e baixo ruído de anotação num painel de cinco anotadores. Grelha sobre desbalanceamento e $\varepsilon$.
+**Setup.** Modelo 2 (verdade ruidosa) com forte enviesamento de classe e baixo $\varepsilon$ num painel de cinco anotadores. Grelha sobre desbalanceamento e ruído.
 
-**Expectativa.** Regiões onde $A_o$ **bruto** permanece alto mas $\alpha$ (e $\kappa_F$) caem — a **armadilha** central da tese.
+**Definição formal.** A **armadilha do acordo** é a região do espaço de parâmetros onde o acordo bruto é confortavelmente alto mas a confiabilidade corrigida pelo acaso é baixa:
 
-**Resultado.** Heatmaps de $A_o$ e $\alpha$ mostram uma cunha visível onde $A_o > 0{,}8$ enquanto $\alpha < 0{,}4$. Este é o **padrão central** do artigo: stakeholders veem uma percentagem **confortável** enquanto os coeficientes corrigidos pelo acaso indicam que o painel é apenas modestamente melhor que um referencial aleatório consciente da prevalência.
+$$\mathcal{T} = \{(\pi, \varepsilon) : A_o(\pi, \varepsilon) > 0.80 \;\wedge\; \alpha(\pi, \varepsilon) < 0.40\}.$$
 
-![Experimento B: heatmaps de $\alpha$ e $A_o$ sobre desbalanceamento e ruído.](../figures/exp_b_agreement_trap_heatmap.png)
+Esta região existe porque $A_e = \sum_k \pi_k^2$ cresce com o desbalanceamento de classes. Quando $\pi_{\text{major}}$ se aproxima de 1, mesmo anotadores ruidosos concordam na classe dominante a maior parte do tempo, inflacionando $A_o$ sem sinal genuíno ao nível do item.
+
+**Resultado.** Heatmaps de $A_o$ e $\alpha$ mostram uma cunha visível que ocupa $\mathcal{T}$. Um exemplo concreto: com $\pi = (0{,}85,\; 0{,}10,\; 0{,}05)$ e $\varepsilon = 0{,}05$, obtém-se $A_o \approx 0{,}84$ enquanto $\alpha \approx 0{,}35$. Stakeholders veem uma percentagem bruta confortável; o coeficiente corrigido pelo acaso revela que o painel é apenas modestamente melhor que um referencial aleatório consciente da prevalência. A lição operacional: coloque **ambas** as vistas na mesma tabela por defeito.
+
+![Experimento B: heatmaps de $\alpha$ e $A_o$ sobre desbalanceamento e ruído; caixas vermelhas marcam a região de armadilha.](../figures/exp_b_agreement_trap_heatmap.png)
 
 **Figura 4.** Armadilha do acordo: sobreposição bruta alta coexiste com confiabilidade corrigida baixa sob enviesamento + baixo ruído.
 
@@ -299,9 +331,11 @@ São **sintéticas** de propósito: alvos analíticos existem para etiquetagem a
 
 **Setup.** Três anotadores “humanos” com ruído $\varepsilon = 0{,}10$ e um anotador “LLM” com $\varepsilon = 0{,}15$ numa tarefa de três classes; sensibilidade sobre ruído do LLM em $[0, 0{,}5]$.
 
-**Resultado.** $\alpha$ e métricas relacionadas **acompanham** a qualidade do painel; adicionar um anotador mais ruidoso tende a **reduzir** $\alpha$ do painel relativamente ao sub-painel só de humanos. A curva de sensibilidade torna a relação dose-resposta visível para o parâmetro de ruído sintético (substituto para qualidade do modelo, não uma afirmação sobre uma API específica).
+**Resultado.** $\alpha$ acompanha a qualidade do painel; adicionar um anotador mais ruidoso reduz $\alpha$ relativamente ao sub-painel só de humanos. A curva de sensibilidade torna a relação dose-resposta visível.
 
-![Experimento C: sensibilidade de $\alpha$ ao ruído sintético do LLM.](../figures/exp_c_llm_vs_humans.png)
+**Ressalva importante.** Este experimento modela o erro do LLM como **ruído i.i.d. simétrico** (Modelo 2). Na prática, erros de LLMs são **estruturados**: um modelo pode sistematicamente sobreprevê a classe majoritária, exibir viés dependente do prompt, ou falhar em padrões semânticos específicos. Ruído simétrico é um referencial útil, mas a avaliação real de LLMs requer diagnósticos adicionais — matrizes de confusão estratificadas por classe, sondas adversariais, e análise de **onde** (não apenas com que frequência) ocorrem os desacordos. Um cenário com **viés direcional** (e.g. o LLM sempre prevê a classe majoritária quando incerto) provavelmente mostraria $\alpha$ a degradar mais rapidamente do que o caso simétrico prevê.
+
+![Experimento C: sensibilidade de $\alpha$ ao ruído sintético do LLM; só humanos vs painel completo.](../figures/exp_c_llm_vs_humans.png)
 
 **Figura 5.** LLM sintético vs humanos: $\alpha$ responde ao ruído injetado do LLM; comparar só humanos com o painel completo.
 
@@ -311,7 +345,9 @@ São **sintéticas** de propósito: alvos analíticos existem para etiquetagem a
 
 **Expectativa.** A formulação de Fleiss (matriz completa) torna-se **indefinida** ou `NaN` com entradas faltantes; $\alpha$ **degrada graciosamente** porque é definido sobre unidades emparelháveis.
 
-**Resultado.** $\alpha$ permanece estável perto do seu valor com dados completos enquanto Fleiss desaparece — uma razão prática para preferir $\alpha$ em regimes de anotação esparsa. Anotadores reais desistem a meio de lotes, pull requests dividem pools de revisores, e chamadas de LLM dão timeout. Uma métrica que requer **imputação** ou **eliminação de linhas** para retornar um número convida viés silencioso.
+**Resultado.** $\alpha$ permanece estável perto do seu valor com dados completos enquanto Fleiss desaparece — uma razão prática para preferir $\alpha$ em regimes de anotação esparsa. A **vantagem de retenção por pares** é central: $\alpha$ usa toda a informação de pares disponível por unidade, enquanto Fleiss requer a grelha completa. Reduzir a casos completos introduz **viés de caso completo** quando a falta de dados correlaciona com dificuldade do item ou carga de trabalho do anotador.
+
+Anotadores reais desistem a meio de lotes, merge requests dividem pools de revisores, e chamadas de LLM dão timeout. A lógica de coincidência de $\alpha$ não é mágica — se a falta de dados é **informativa** (itens mais difíceis são mais frequentemente ignorados), nenhum coeficiente é seguro — mas evita o modo de **falha estrutural** de requerer imputação ou eliminação de linhas apenas para retornar um número.
 
 ![Experimento D: $\alpha$ vs $\kappa_F$ à medida que a taxa de faltantes aumenta.](../figures/exp_d_missing_robustness.png)
 
@@ -360,27 +396,43 @@ Não há corte universal que substitua julgamento de domínio. Regras tipo Landi
 
 ### 9.4 Checklist de relatório
 
-1. Qual definição de acordo (pares dentro do item vs pool global).
-2. $A_o$ (ou equivalente) **e** pelo menos um coeficiente consciente do acaso adequado ao desenho.
-3. Declarar $K$, frequências de classe aproximadas, taxa de faltantes.
-4. Para $\alpha$: nível de medição e **domínio de valores**.
-5. Arquivar **código e sementes** para refazer figuras e tabelas.
+Ao escrever a secção de métodos de um artigo ou um model card interno:
 
-### 9.5 O que coeficientes não consertam
+1. Declarar **qual** definição de acordo é usada (pares dentro do item vs pool global).
+2. Reportar $A_o$ (ou equivalente) **e** pelo menos um coeficiente **consciente do acaso** adequado ao desenho.
+3. Divulgar $K$, **frequências de classe aproximadas** e taxas de **faltantes**.
+4. Para $\alpha$: nomear o **nível de medição** (nominal vs ordinal, ...) e o **domínio de valores**.
+5. Arquivar **código e sementes** para que figuras e tabelas sejam recalculáveis.
 
-$\alpha$ não substitui **regras de codificação**, **treino** ou **piloto**. Desacordo concentrado em poucos itens ambíguos pede **revisão do guia**, não só mais dados. Acordo enviesado (todos erram da mesma forma) não é detetado como problema de validade. **Anotadores não independentes** (chat, cópia, partilha de outputs de modelo) violam pressupostos; a solução é **protocolo**, não álgebra posterior.
+### 9.5 Confiabilidade não é validade (o problema do viés sistemático)
+
+$\alpha$ alto significa que os anotadores **reproduzem** os julgamentos uns dos outros. **Não** significa que esses julgamentos estão corretos. Se todos os anotadores aplicam consistentemente a mesma interpretação errada — ou se um LLM e os seus treinadores humanos partilham o mesmo viés sistemático — a confiabilidade será alta enquanto a **validade** é pobre. Isto não é um caso limite teórico: em moderação de conteúdo, anotadores treinados com as mesmas diretrizes podem concordar de forma confiável em etiquetas que uma auditoria externa rejeitaria.
+
+A implicação para avaliação de LLMs é direta: um modelo que imita perfeitamente anotadores humanos herda os seus vieses. Alto acordo entre modelo e humanos é necessário mas **não suficiente** para qualidade. Auditorias de desacordo, análise de erros estratificada e validação externa continuam essenciais.
+
+### 9.6 O que coeficientes não consertam
+
+$\alpha$ não é uma bala de prata. Não substitui **regras de codificação claras**, **treino** ou **estudos piloto**. Limitações específicas:
+
+- **Itens ambíguos.** Se a confusão se concentra num punhado de itens, a resposta correta é **revisão iterativa do guia**, não mais dados.
+- **Sensibilidade à prevalência.** $\alpha$ aborda parcialmente isso através do seu modelo de acaso, mas desbalanceamento extremo pode comprimir o alcance dinâmico do coeficiente. O **AC1 de Gwet** (Gwet, 2008) foi desenhado especificamente para ser mais estável sob o paradoxo do Kappa; vale a pena compará-lo quando a prevalência é extrema e $\kappa$ se comporta erraticamente.
+- **Escolha da função de distância.** Para dados não nominais, o valor de $\alpha$ depende do $\delta$ escolhido. Pressupostos ordinais vs intervalo podem produzir resultados substancialmente diferentes — a escolha deve ser justificada pela teoria de medição, não pelo que produz um número mais alto.
+- **Anotadores não independentes.** Anotadores que discutem etiquetas, copiam vizinhos ou partilham saídas de modelos violam os pressupostos de independência embutidos nos modelos de acaso. A solução é **desenho de protocolo** (isolamento, rotação, condições cegas), não álgebra posterior.
+- **Erros estruturados.** Como notado no Experimento C, $\alpha$ não distingue desacordo **aleatório** de viés **direcional**. Dois anotadores que sistematicamente discordam em direções opostas podem produzir o mesmo $\alpha$ que dois anotadores que discordam aleatoriamente — mas as implicações a jusante são muito diferentes.
 
 ---
 
 ## 10. Conclusão
 
-Abrimos com uma afirmação deliberadamente desconfortável: **acordo alto é fácil de fabricar**. Anotadores independentes com marginais enviesadas concordam frequentemente; $A_o$ bruto codifica esse facto sem o rotular como acaso. Os $\kappa$ de Cohen e Fleiss subtraem um referencial **consciente da prevalência** e melhoram a interpretação, mas cedem sob **paradoxos de desbalanceamento**, **dados faltantes** e scaffolding **nominal inflexível**.
+Abrimos com um cenário concreto: anotadores discordam, um LLM é consistente, e a tentação é confiar no número que parece melhor. O argumento do artigo é que **acordo alto pode ser enganador** sob desbalanceamento de classes e marginais independentes — não que é sempre enganador, mas que sem modelar explicitamente o acaso, não há como distinguir.
 
-O $\alpha$ de Krippendorff reformula a questão em torno de **desacordo** ponderado por distâncias significativas, com uma construção de coincidência que absorve padrões de observação **parcial**. Os quatro experimentos mostram, em condições controladas, que $\alpha$ **comporta-se** como a teoria exige quando anotadores são aleatórios, **sinaliza** a armadilha do alto $A_o$, responde à **composição do painel**, e **sobrevive** a faltantes onde Fleiss não consegue.
+Os $\kappa$ de Cohen e Fleiss subtraem um referencial consciente da prevalência e melhoram a interpretação, mas cedem sob **paradoxos de desbalanceamento**, **dados faltantes** e scaffolding **nominal inflexível**. O $\alpha$ de Krippendorff reformula a questão em torno de **desacordo** ponderado por distâncias significativas, com uma construção de coincidência que absorve padrões de observação **parcial**. Os quatro experimentos mostram, em condições controladas sob dois processos geradores de dados explícitos, que $\alpha$ se comporta como a teoria exige: anula-se sob etiquetagem puramente aleatória, sinaliza a armadilha do acordo, responde à composição do painel, e sobrevive a faltantes onde Fleiss não consegue.
 
-Para **prática de ML**, a mensagem operacional é procedimental: **nunca** enviar um único percentual de acordo sem declarar o **referencial de acaso**; **preferir** coeficientes que correspondam ao **desenho amostral** e à **escala**; e **investir** em auditorias de desacordo — especialmente quando o acordo de um LLM com humanos é usado como proxy para segurança ou qualidade. Confiabilidade não é a ausência de números grandes; é a **distância** entre o que se observa e o que o **emparelhamento aleatório** produziria.
+$\alpha$ não é uma bala de prata. Não deteta **viés sistemático**, não substitui diretrizes de anotação claras, e — como todo coeficiente corrigido pelo acaso — depende de pressupostos de modelação que dados reais podem violar. Alternativas como o AC1 de Gwet abordam modos de falha específicos de $\kappa$ sob prevalência extrema. A abordagem correta raramente é um coeficiente único; é um **kit de diagnóstico** que inclui $A_o$, uma medida corrigida pelo acaso, e análise qualitativa de erros.
 
-O gancho inicial — oitenta por cento é enganador — não é cinismo sobre anotação humana. É um lembrete de que **boa fé** e **alta sobreposição** são variáveis aleatórias diferentes. Os coeficientes aqui apresentados, especialmente $\alpha$, são ferramentas para manter essa distinção visível quando os riscos são altos.
+Para **prática de ML**, a mensagem operacional é procedimental: **nunca** enviar um único percentual de acordo sem declarar o **referencial de acaso**; **preferir** coeficientes que correspondam ao **desenho amostral** e à **escala de medição**; e **investir** em auditorias de desacordo — especialmente quando o acordo de um LLM com humanos é usado como proxy para segurança ou qualidade.
+
+O cenário inicial — humanos discordam, o modelo é consistente — não é um argumento contra a anotação humana. É um lembrete de que **consistência** e **correção** são propriedades diferentes, e que a distância entre o que se observa e o que o emparelhamento aleatório produziria é onde a confiabilidade vive.
 
 ---
 
@@ -393,3 +445,4 @@ O gancho inicial — oitenta por cento é enganador — não é cinismo sobre an
 5. Artstein, R., & Poesio, M. (2008). Inter-coder agreement for computational linguistics. *Computational Linguistics*, 34(4), 555–596. [doi:10.1162/coli.07-034-R2](https://doi.org/10.1162/coli.07-034-R2)
 6. Landis, J. R., & Koch, G. G. (1977). The measurement of observer agreement for categorical data. *Biometrics*, 33(1), 159–174. [doi:10.2307/2529310](https://doi.org/10.2307/2529310)
 7. Krippendorff, K. (2011). Computing Krippendorff's Alpha-Reliability. *Departmental Papers (ASC)*, University of Pennsylvania. [Available online](https://repository.upenn.edu/asc_papers/43/)
+8. Gwet, K. L. (2008). Computing inter-rater reliability and its variance in the presence of high agreement. *British Journal of Mathematical and Statistical Psychology*, 61(1), 29–48. [doi:10.1348/000711006X126600](https://doi.org/10.1348/000711006X126600)
