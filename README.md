@@ -19,7 +19,7 @@ The full phased plan (phases 0–6, repo layout, Git workflow, issues, and deliv
 
 **[`roadmap-krippendorff-alpha-v3.md`](roadmap-krippendorff-alpha-v3.md)**
 
-**Status (code):** Phase 0 (foundation) and Phase 1 (statistical foundation: `simulate`, `observed_agreement`, convergence figure) are implemented; Phase 2 adds **Cohen's** and **Fleiss'** kappa in `src/metrics.py`, theory in `notes/phase2-kappa.md`, and `figures/kappa_paradox.png`.
+**Status (code):** Phases 0–2 are implemented as above; **Phase 3** adds Krippendorff's alpha: `src/coincidence.py`, `src/distances.py`, `krippendorff_alpha()` in `src/metrics.py` (validated against the `krippendorff` package), `notes/phase3-alpha.md`, and `notebooks/03_alpha_derivation.ipynb`.
 
 ## Repository layout (short)
 

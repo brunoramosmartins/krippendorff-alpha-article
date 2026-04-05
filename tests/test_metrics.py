@@ -11,6 +11,7 @@ from src.metrics import (
     cohens_kappa,
     expected_agreement_independence,
     fleiss_kappa,
+    krippendorff_alpha,
     observed_agreement,
     observed_agreement_global_with_replacement,
 )
@@ -104,6 +105,78 @@ def test_fleiss_kappa_rejects_non_integer() -> None:
 def test_fleiss_kappa_dataframe() -> None:
     df = pd.DataFrame([[0, 0, 1], [1, 1, 1]])
     assert fleiss_kappa(df) == pytest.approx(0.25)
+
+
+def test_krippendorff_alpha_matches_reference_nominal_interval() -> None:
+    krippendorff = pytest.importorskip("krippendorff")
+    ka = krippendorff.alpha
+
+    rel = np.array(
+        [
+            [np.nan, np.nan, np.nan, np.nan, np.nan, 3, 4, 1, 2, 1, 1, 3, 3, np.nan, 3],
+            [1, np.nan, 2, 1, 3, 3, 4, 3, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, np.nan],
+            [np.nan, np.nan, 2, 1, 3, 4, 4, np.nan, 2, 1, 1, 3, 3, np.nan, 4],
+        ],
+        dtype=float,
+    )
+    data = rel.T
+    assert krippendorff_alpha(data, level_of_measurement="nominal") == pytest.approx(
+        ka(reliability_data=rel, level_of_measurement="nominal"),
+        abs=1e-5,
+    )
+    assert krippendorff_alpha(data, level_of_measurement="interval") == pytest.approx(
+        ka(reliability_data=rel, level_of_measurement="interval"),
+        abs=1e-5,
+    )
+
+
+def test_krippendorff_alpha_matches_reference_ordinal_ratio() -> None:
+    krippendorff = pytest.importorskip("krippendorff")
+    ka = krippendorff.alpha
+
+    rel = np.array(
+        [
+            [1, 2, 3, 3, 2, 1, 4, 1, 2, np.nan, np.nan, np.nan],
+            [1, 2, 3, 3, 2, 2, 4, 1, 2, 5, np.nan, 3],
+            [np.nan, 3, 3, 3, 2, 3, 4, 2, 2, 5, 1, np.nan],
+            [1, 2, 3, 3, 2, 4, 4, 1, 2, 5, 1, np.nan],
+        ],
+        dtype=float,
+    )
+    data = rel.T
+    vd = np.array([1, 2, 3, 4, 5], dtype=float)
+    ord_ours = krippendorff_alpha(data, level_of_measurement="ordinal", value_domain=vd)
+    ord_ref = ka(rel, value_domain=[1, 2, 3, 4, 5], level_of_measurement="ordinal")
+    assert ord_ours == pytest.approx(ord_ref, abs=1e-5)
+    ratio_ours = krippendorff_alpha(data, level_of_measurement="ratio", value_domain=vd)
+    assert ratio_ours == pytest.approx(ka(rel, level_of_measurement="ratio"), abs=1e-5)
+
+
+def test_krippendorff_alpha_perfect_agreement() -> None:
+    x = np.array([[0, 0], [0, 0], [1, 1], [1, 1]], dtype=float)
+    assert krippendorff_alpha(x, level_of_measurement="nominal") == pytest.approx(1.0)
+
+
+def test_krippendorff_alpha_two_raters_matches_package() -> None:
+    krippendorff = pytest.importorskip("krippendorff")
+    x = np.array([[0, 0], [1, 1], [0, 1], [1, 0], [2, 2]], dtype=float)
+    ka = krippendorff_alpha(x, level_of_measurement="nominal")
+    assert ka == pytest.approx(
+        krippendorff.alpha(x.T, level_of_measurement="nominal"),
+        abs=1e-9,
+    )
+
+
+def test_krippendorff_alpha_raises_no_pairable_unit() -> None:
+    x = np.array([[0, np.nan], [np.nan, 1]], dtype=float)
+    with pytest.raises(ValueError, match="two or more"):
+        krippendorff_alpha(x, level_of_measurement="nominal")
+
+
+def test_krippendorff_alpha_raises_single_category_domain() -> None:
+    x = np.ones((4, 3))
+    with pytest.raises(ValueError, match="at least two"):
+        krippendorff_alpha(x, level_of_measurement="nominal")
 
 
 def test_kappa_paradox_ordering_extreme_noise() -> None:
