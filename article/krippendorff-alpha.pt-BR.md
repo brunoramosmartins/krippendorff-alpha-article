@@ -67,10 +67,7 @@ Fixe um item $i$. Seja $S_i$ o conjunto de pares não ordenados $(j,\ell)$, $j<\
 O **acordo observado** é a fração de pares comparáveis em acordo:
 
 $$
-A_o
-=
-\frac{\displaystyle\sum_{i=1}^n \sum_{(j,\ell)\in S_i} I_{ij\ell}}
-     {\displaystyle\sum_{i=1}^n |S_i|}.
+A_o = \frac{\displaystyle\sum_{i=1}^n \sum_{(j,\ell)\in S_i} I_{ij\ell}}{\displaystyle\sum_{i=1}^n |S_i|}.
 $$
 
 Assim $A_o$ é uma **proporção amostral** de pares concordantes, agregada pelos itens.
@@ -102,11 +99,7 @@ Como qualquer proporção, $A_o$ tem **variabilidade amostral**; nos experimento
 **Modelo.** Dois anotadores etiquetam **independentemente**, cada um com a mesma distribuição $\pi=(\pi_1,\ldots,\pi_K)$. Então
 
 $$
-A_e
-=
-P(\text{ambos na mesma categoria})
-=
-\sum_{k=1}^K \pi_k^2.
+A_e = P(\text{ambos na mesma categoria}) = \sum_{k=1}^K \pi_k^2.
 $$
 
 Se $\pi_k=1/K$, $A_e=1/K$. Para $K=2$, “moedas” independentes concordam metade do tempo **sem** verdade partilhada.
