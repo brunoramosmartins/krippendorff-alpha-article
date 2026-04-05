@@ -1,4 +1,4 @@
-.PHONY: install test lint docs docs-serve experiments clean
+.PHONY: install test lint docs docs-serve experiments export-portfolio clean
 
 PYTHON ?= python
 PIP ?= pip
@@ -11,7 +11,7 @@ test:
 	$(PYTHON) -m pytest tests/ -q
 
 lint:
-	$(PYTHON) -m ruff check src tests scripts
+	$(PYTHON) -m ruff check src tests scripts mkdocs_hooks.py
 
 docs:
 	$(PYTHON) -m mkdocs build --strict
@@ -24,6 +24,9 @@ experiments:
 	$(PYTHON) scripts/experiment_b_trap.py
 	$(PYTHON) scripts/experiment_c_llm.py
 	$(PYTHON) scripts/experiment_d_missing.py
+
+export-portfolio:
+	$(PYTHON) scripts/export_article_for_portfolio.py
 
 clean:
 	rm -rf site/ .pytest_cache .ruff_cache **/__pycache__

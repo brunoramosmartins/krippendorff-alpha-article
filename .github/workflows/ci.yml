@@ -34,5 +34,14 @@ jobs:
       - name: Ruff check
         run: python -m ruff check src tests scripts
 
+      - name: Generate figures for documentation
+        run: |
+          python scripts/phase1_convergence_plot.py
+          python scripts/kappa_paradox_plot.py
+          python scripts/experiment_a_random.py
+          python scripts/experiment_b_trap.py
+          python scripts/experiment_c_llm.py
+          python scripts/experiment_d_missing.py
+
       - name: Build documentation
         run: python -m mkdocs build --strict
