@@ -43,6 +43,5 @@ Thumbs.db
 # Local env / secrets
 .env
 .env.*
-roadmap-krippendorff-alpha-v3.md
-# Figures regeneration (optional: remove if you want to commit generated PNGs)
+# Figures regeneration (optional: uncomment to stop tracking generated PNGs)
 # figures/*.png
