@@ -2,18 +2,29 @@
 
 Phase 1: :func:`observed_agreement`, :func:`expected_agreement_independence`.
 Phase 2: :func:`cohens_kappa`, :func:`fleiss_kappa`.
-See `notes/phase1-theory.md` and `notes/phase2-kappa.md`.
+Phase 3: :func:`krippendorff_alpha`.
+See `notes/phase1-theory.md`, `notes/phase2-kappa.md`, and `notes/phase3-alpha.md`.
 """
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
 import numpy as np
 import pandas as pd
 
+from .coincidence import (
+    build_coincidence_matrix,
+    marginal_totals,
+    random_coincidence_matrix,
+    value_counts_matrix,
+)
+from .distances import distance_matrix
+
 if TYPE_CHECKING:
     from collections.abc import Sequence
+
+AlphaLevel = Literal["nominal", "ordinal", "interval", "ratio"]
 
 
 def observed_agreement(data: pd.DataFrame | np.ndarray) -> float:
@@ -245,3 +256,105 @@ def fleiss_kappa(data: pd.DataFrame | np.ndarray) -> float:
     if denom <= 1e-15:
         return float("nan")
     return (p_bar - p_e) / denom
+
+
+def krippendorff_alpha(
+    data: pd.DataFrame | np.ndarray,
+    *,
+    level_of_measurement: AlphaLevel = "interval",
+    value_domain: np.ndarray | None = None,
+    dtype: np.dtype | None = None,
+) -> float:
+    r"""Krippendorff's :math:`\alpha` from reliability data (items × raters).
+
+    .. math::
+
+        \alpha = 1 - \frac{\sum_{c,c'} O_{cc'}\,\delta_{cc'}}
+                         {\sum_{c,c'} E_{cc'}\,\delta_{cc'}},
+
+    where :math:`\mathbf{O}` is the observed coincidence matrix,
+    :math:`\mathbf{E}` the expected coincidence under random pairing preserving
+    marginals, and :math:`\delta` the metric for the chosen scale.
+
+    **Layout:** each **row** is a unit (item), each **column** a rater. Missing
+    entries are ``NaN``. This matches :func:`observed_agreement` / Fleiss inputs;
+    the ``krippendorff`` reference package uses the **transposed** layout
+    (raters × items).
+
+    Parameters
+    ----------
+    data
+        Shape ``(n_units, n_raters)``.
+    level_of_measurement
+        ``"nominal"``, ``"ordinal"``, ``"interval"``, or ``"ratio"``.
+    value_domain
+        Shape ``(V,)``, all admissible values **in order** (required for ordinal
+        and for non-numeric categories). If ``None``, taken as sorted unique
+        non-missing values in ``data`` (strings allowed only for nominal unless
+        you pass an explicit order).
+    dtype
+        Inexact numpy dtype for weighted sums (default ``float64``).
+
+    Returns
+    -------
+    float
+        :math:`\alpha`, or ``nan`` if the denominator vanishes.
+
+    Raises
+    ------
+    ValueError
+        If the domain or pairability conditions for :math:`\alpha` are not met.
+    """
+    dt = np.dtype(np.float64) if dtype is None else np.dtype(dtype)
+    if not np.issubdtype(dt, np.inexact):
+        raise ValueError("dtype must be a floating-point dtype.")
+
+    if isinstance(data, pd.DataFrame):
+        arr = data.to_numpy()
+    else:
+        arr = np.asarray(data)
+
+    if arr.ndim != 2:
+        raise ValueError("data must be 2D (units × raters).")
+
+    kind = arr.dtype.kind
+    if kind in {"i", "u", "f"}:
+        arr_f = arr.astype(np.float64, copy=False)
+        flat = arr_f.ravel()
+        observed = flat[~np.isnan(flat)]
+        computed_domain = np.unique(observed)
+        work = arr_f
+    elif kind in {"U", "S"}:
+        if level_of_measurement != "nominal":
+            raise ValueError("String arrays require level_of_measurement='nominal'.")
+        observed = arr[np.asarray(arr != "nan")]
+        computed_domain = np.unique(observed)
+        work = arr
+    else:
+        raise ValueError(f"Unsupported array dtype kind {kind!r}; use numeric codes.")
+
+    if value_domain is None:
+        vd = computed_domain
+    else:
+        vd = np.asarray(value_domain)
+
+    if vd.ndim != 1 or vd.size <= 1:
+        raise ValueError("value_domain must be 1D with at least two categories.")
+
+    if not np.isin(computed_domain, vd).all():
+        raise ValueError("data contains values outside value_domain.")
+
+    vc = value_counts_matrix(work, vd)
+    if not np.any(vc.sum(axis=1) >= 2):
+        raise ValueError("At least one unit must have two or more valid ratings.")
+
+    o_mat = build_coincidence_matrix(vc)
+    n_v = marginal_totals(o_mat)
+    e_mat = random_coincidence_matrix(n_v)
+    d_mat = distance_matrix(vd, n_v, level_of_measurement, dtype=dt)
+
+    num = float((o_mat * d_mat).sum())
+    den = float((e_mat * d_mat).sum())
+    if den <= 1e-15:
+        return float("nan")
+    return 1.0 - num / den
