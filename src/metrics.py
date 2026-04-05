@@ -358,3 +358,21 @@ def krippendorff_alpha(
     if den <= 1e-15:
         return float("nan")
     return 1.0 - num / den
+
+
+def fleiss_kappa_or_nan(data: pd.DataFrame | np.ndarray) -> float:
+    r"""Fleiss' :math:`\kappa` when the matrix is **complete**; else ``nan``.
+
+    Fleiss' formulation used in :func:`fleiss_kappa` requires every cell observed.
+    For missing-data experiments, call this instead of catching exceptions in scripts.
+    """
+    if isinstance(data, pd.DataFrame):
+        arr = data.to_numpy(dtype=float, copy=False)
+    else:
+        arr = np.asarray(data, dtype=float)
+    if np.any(np.isnan(arr)):
+        return float("nan")
+    try:
+        return float(fleiss_kappa(arr))
+    except ValueError:
+        return float("nan")

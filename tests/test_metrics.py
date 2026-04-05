@@ -11,6 +11,7 @@ from src.metrics import (
     cohens_kappa,
     expected_agreement_independence,
     fleiss_kappa,
+    fleiss_kappa_or_nan,
     krippendorff_alpha,
     observed_agreement,
     observed_agreement_global_with_replacement,
@@ -105,6 +106,16 @@ def test_fleiss_kappa_rejects_non_integer() -> None:
 def test_fleiss_kappa_dataframe() -> None:
     df = pd.DataFrame([[0, 0, 1], [1, 1, 1]])
     assert fleiss_kappa(df) == pytest.approx(0.25)
+
+
+def test_fleiss_kappa_or_nan_complete_matches_fleiss() -> None:
+    df = pd.DataFrame([[0, 0, 1], [1, 1, 1]])
+    assert fleiss_kappa_or_nan(df) == pytest.approx(fleiss_kappa(df))
+
+
+def test_fleiss_kappa_or_nan_missing_returns_nan() -> None:
+    df = pd.DataFrame([[0, 0], [0, np.nan]])
+    assert np.isnan(fleiss_kappa_or_nan(df))
 
 
 def test_krippendorff_alpha_matches_reference_nominal_interval() -> None:

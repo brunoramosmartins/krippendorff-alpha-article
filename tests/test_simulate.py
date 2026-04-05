@@ -111,6 +111,28 @@ def test_invalid_constructor() -> None:
         SimulatedAnnotation(10, 3, 3, missing_rate=0.6, seed=0)
 
 
+def test_noise_level_vector_length_mismatch() -> None:
+    with pytest.raises(ValueError, match="noise_level vector length"):
+        SimulatedAnnotation(10, 4, 3, noise_level=[0.1, 0.2, 0.3], seed=0)
+
+
+def test_noise_level_vector_per_rater() -> None:
+    gen = SimulatedAnnotation(
+        n_items=5_000,
+        n_annotators=4,
+        n_classes=3,
+        noise_level=[0.0, 0.0, 0.0, 0.5],
+        class_dist="uniform",
+        seed=202,
+    )
+    df = gen.generate()
+    # First three columns copy latent truth; fourth is noisier -> lower rowwise agreement.
+    agree_first_three = (df.iloc[:, 0] == df.iloc[:, 1]) & (df.iloc[:, 1] == df.iloc[:, 2])
+    assert agree_first_three.mean() > 0.99
+    agree_all_four = df.nunique(axis=1) == 1
+    assert agree_all_four.mean() < 0.99
+
+
 def test_reset_rng_reproducible() -> None:
     gen = SimulatedAnnotation(50, 3, 3, pure_random=True, seed=10)
     a = gen.generate().to_numpy()
