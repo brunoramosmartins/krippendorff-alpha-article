@@ -33,3 +33,13 @@ Default output: `dist/portfolio-article/`. Copy that folder into your portfolio 
 ## MkDocs in *this* repo
 
 `mkdocs build` runs a hook that strips front matter from the article for the docs page, rewrites image paths for `mkdocs_docs/figures/`, and writes `mkdocs_docs/_article_include.md` (gitignored). You do not need to maintain that file by hand.
+
+**Math rendering:** the Material theme uses `content.math` and pymdownx **Arithmatex** (`generic: true`). Snippets must resolve includes from `mkdocs_docs/`, so `mkdocs.yml` sets `pymdownx.snippets.base_path` to `["mkdocs_docs", "."]` — otherwise `_article_include.md` is not found and the Article page renders **without** body or equations.
+
+## Portuguese review draft
+
+`krippendorff-alpha.pt-BR.md` is a **parallel draft** for review and annotations (not wired into MkDocs by default). Keep `krippendorff-alpha.md` as the canonical English source for export and the docs site.
+
+## Pen-and-paper derivations (roadmap)
+
+See `docs/math-derivations-checklist.md` for a checklist of formulas and proofs aligned with Phases 1–3 of the roadmap.
