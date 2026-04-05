@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "krippendorff-alpha-article"
-version = "0.2.0"
+version = "0.3.0"
 description = "Technical article and code: inter-annotator agreement from first principles to Krippendorff's Alpha"
 readme = "README.md"
 license = { text = "MIT" }
