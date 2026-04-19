@@ -46,3 +46,5 @@ Thumbs.db
 .env.*
 # Figures regeneration (optional: uncomment to stop tracking generated PNGs)
 # figures/*.png
+
+/.claude

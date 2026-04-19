@@ -19,7 +19,7 @@ keywords:
   - avaliação NLP
 article_format:
   version: 1
-  note: "Rascunho de revisão em PT-BR; o texto canónico em inglês é krippendorff-alpha.md."
+  note: "Versão em PT-BR; o texto canónico em inglês é krippendorff-alpha.md."
 ---
 
 # Quando o acordo é uma ilusão
@@ -98,7 +98,7 @@ Coincide com o $A_o$ por pares dentro do item em desenhos simples e balanceados,
 
 $A_o$ é uma estatística **descritiva** clara. **Não** mede “quanto melhor que o acaso” age o painel. Dois anotadores independentes com distribuição $\pi$ concordam com probabilidade $\sum_k\pi_k^2$, muitas vezes bem acima de zero. Se o seu $A_o$ reportado está perto disso, os dados são compatíveis com **independência**, não com verdade latente partilhada.
 
-Como qualquer proporção, $A_o$ tem **variabilidade amostral**; nos experimentos usa-se $n=10{,}000$ em parte para curvas estáveis. Na prática, complemente estimativas pontuais com **intervalos de confiança** (bootstrap sobre itens é comum) e com vistas **desagregadas** (acordo por estrato, matrizes de confusão).
+Como qualquer proporção, $A_o$ tem **variabilidade amostral**; nos experimentos usa-se $n = 10\,000$ em parte para curvas estáveis. Na prática, complemente estimativas pontuais com **intervalos de confiança** (bootstrap sobre itens é comum) e com vistas **desagregadas** (acordo por estrato, matrizes de confusão).
 
 Logo, o enquadramento: trate $A_o$ como um **estimador** de sobreposição sob o seu esquema amostral, e pergunte sempre contra que **referencial** ele deveria ser comparado.
 
@@ -202,7 +202,7 @@ Prevalência extrema infla $\sum_k p_k^2$; $A_o$ bruto pode ser alto com $\kappa
 
 ![Kappa de Fleiss vs desbalanceamento (paradoxo).](../figures/kappa_paradox.png)
 
-**Figura 2.** $\kappa_F$ pode cair com $A_o$ ainda “alto” em escalas ingénuas.
+**Figura 2.** $\kappa_F$ pode cair com $A_o$ ainda “alto” em escalas ingénuas. Note a escala Y mais estreita no painel direito.
 
 ### 5.2 Restrições estruturais
 
@@ -270,21 +270,21 @@ A mudança conceitual é simples: em vez de "com que frequência concordamos?", 
 ## 7. Alpha de Krippendorff
 
 $$
-D_o^\* = \sum_{c,c'} O_{cc'}D_{cc'},
+D_o^* = \sum_{c,c'} O_{cc'}D_{cc'},
 \quad
-D_e^\* = \sum_{c,c'} E_{cc'}D_{cc'},
+D_e^* = \sum_{c,c'} E_{cc'}D_{cc'},
 \quad
-\alpha = 1-\frac{D_o^\*}{D_e^\*}.
+\alpha = 1-\frac{D_o^*}{D_e^*}.
 $$
 
 $$
 E_{cc'} = \frac{n_c n_{c'}-n_c\delta_{cc'}}{N-1}.
 $$
 
-**Limites:** $\alpha=1$ se $D_o^\*=0$ (caso nominal perfeito); $\alpha=0$ se $D_o^\*=D_e^\*$; $\alpha<0$ se $D_o^\*>D_e^\*$.
+**Limites:** $\alpha=1$ se $D_o^*=0$ (caso nominal perfeito); $\alpha=0$ se $D_o^*=D_e^*$; $\alpha<0$ se $D_o^*>D_e^*$.
 
 $$
-\alpha = \frac{D_e^\*-D_o^\*}{D_e^\*}.
+\alpha = \frac{D_e^*-D_o^*}{D_e^*}.
 $$
 
 Relação com Cohen: modelos de acaso diferentes se $K>2$ — não espere igualdade numérica.
@@ -301,7 +301,7 @@ São **sintéticas** de propósito: alvos analíticos existem para etiquetagem a
 
 ### 8.1 A — Anotadores aleatórios (teste de sanidade)
 
-**Setup.** Modelo 1 (etiquetagem puramente aleatória), $\pi$ uniforme, varrimento de $K \in \{2,\ldots,10\}$ com $n=10{,}000$, $m=5$.
+**Setup.** Modelo 1 (etiquetagem puramente aleatória), $\pi$ uniforme, varrimento de $K \in \{2,\ldots,10\}$ com $n = 10\,000$, $m=5$.
 
 **Expectativa.** $A_o \approx 1/K$; $\kappa_F \approx 0$; $\alpha \approx 0$.
 
@@ -351,7 +351,7 @@ Anotadores reais desistem a meio de lotes, merge requests dividem pools de revis
 
 ![Experimento D: $\alpha$ vs $\kappa_F$ à medida que a taxa de faltantes aumenta.](../figures/exp_d_missing_robustness.png)
 
-**Figura 6.** Dados faltantes: $\alpha$ mantém-se informativo; Fleiss requer matriz completa.
+**Figura 6.** Dados faltantes: $\alpha$ mantém-se informativo (média $\pm$ 1 DP sobre 10 seeds); Fleiss requer matriz completa.
 
 ### 8.5 Síntese
 

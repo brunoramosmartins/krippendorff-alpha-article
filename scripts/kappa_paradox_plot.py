@@ -67,7 +67,7 @@ def main() -> None:
 
     axes[1].set_xlabel(r"Dominant class mass $\pi_1$")
     axes[1].set_ylabel(r"Pairwise $A_o$")
-    axes[1].set_title("Raw agreement vs imbalance (same draws)")
+    axes[1].set_title("Raw agreement vs imbalance (same draws)\n(note narrower y-axis scale)")
     axes[1].legend(loc="best", fontsize=8)
 
     fig.suptitle(

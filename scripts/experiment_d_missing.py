@@ -22,6 +22,7 @@ from src.simulate import SimulatedAnnotation
 
 BASE_SEED = 800
 MISSING_RATES = [0.0, 0.10, 0.20, 0.30, 0.40, 0.50]
+N_SEEDS = 10  # number of seeds for confidence intervals
 
 
 def main() -> None:
@@ -38,29 +39,43 @@ def main() -> None:
     )
     base = gen.generate().to_numpy(dtype=float)
 
-    alphas: list[float] = []
+    # Collect alpha across multiple seeds per missing rate
+    alpha_runs = np.zeros((len(MISSING_RATES), N_SEEDS))
     fleiss_vals: list[float] = []
 
     for idx, rate in enumerate(MISSING_RATES):
-        rng = np.random.default_rng(BASE_SEED + 11 + idx * 97)
-        arr = base.copy()
+        for s in range(N_SEEDS):
+            rng = np.random.default_rng(BASE_SEED + 11 + idx * 97 + s * 7)
+            arr = base.copy()
+            if rate > 0:
+                miss = rng.random(arr.shape) < rate
+                arr[miss] = np.nan
+            df = pd.DataFrame(arr)
+            alpha_runs[idx, s] = krippendorff_alpha(df, level_of_measurement="nominal")
+        # Fleiss: use first seed only (it's NaN for any missing rate > 0 anyway)
+        rng0 = np.random.default_rng(BASE_SEED + 11 + idx * 97)
+        arr0 = base.copy()
         if rate > 0:
-            miss = rng.random(arr.shape) < rate
-            arr[miss] = np.nan
-        df = pd.DataFrame(arr)
-        alphas.append(krippendorff_alpha(df, level_of_measurement="nominal"))
-        fleiss_vals.append(fleiss_kappa_or_nan(df))
+            miss0 = rng0.random(arr0.shape) < rate
+            arr0[miss0] = np.nan
+        fleiss_vals.append(fleiss_kappa_or_nan(pd.DataFrame(arr0)))
+
+    alpha_mean = alpha_runs.mean(axis=1)
+    alpha_std = alpha_runs.std(axis=1)
 
     fig, ax = plt.subplots(figsize=(8, 5), dpi=120)
-    ax.plot(
-        [int(round(100 * r)) for r in MISSING_RATES],
-        alphas,
-        "o-",
+    x_pct = [int(round(100 * r)) for r in MISSING_RATES]
+    ax.errorbar(
+        x_pct,
+        alpha_mean,
+        yerr=alpha_std,
+        fmt="o-",
         color="#1f77b4",
-        label=r"Krippendorff $\alpha$ (handles missing cells)",
+        capsize=4,
+        capthick=1.5,
+        label=r"Krippendorff $\alpha$ (mean $\pm$ 1 SD, 10 seeds)",
     )
     # Fleiss: plot valid points, leave gaps for nan
-    x_pct = [int(round(100 * r)) for r in MISSING_RATES]
     kf_y = np.array(fleiss_vals, dtype=float)
     ax.plot(
         x_pct,
@@ -74,14 +89,15 @@ def main() -> None:
     ax.set_title("Experiment D: robustness to missing annotations")
     ax.legend(loc="best", fontsize=9)
     ax.set_xticks(x_pct)
+    ax.set_ylim(0.0, max(alpha_mean) + 0.15)
     fig.tight_layout()
     out = ROOT / "figures" / "exp_d_missing_robustness.png"
     fig.savefig(out, bbox_inches="tight")
     plt.close(fig)
     print(f"Wrote {out}")
-    for r, a, k in zip(MISSING_RATES, alphas, fleiss_vals, strict=True):
+    for idx, (r, k) in enumerate(zip(MISSING_RATES, fleiss_vals, strict=True)):
         ks = "nan" if np.isnan(k) else f"{k:.4f}"
-        print(f"  missing={r:.0%}: alpha={a:.4f}, fleiss={ks}")
+        print(f"  missing={r:.0%}: alpha={alpha_mean[idx]:.4f} (±{alpha_std[idx]:.4f}), fleiss={ks}")
 
 
 if __name__ == "__main__":
