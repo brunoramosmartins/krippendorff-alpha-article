@@ -99,7 +99,7 @@ This quantity coincides with the pairwise-within-item $A_o$ in simple balanced d
 
 $A_o$ is a transparent **descriptive** statistic. What it is **not** is a calibrated measure of "how much better than chance" the panel behaves. Two independent annotators who each draw labels from a skewed distribution $\pi$ will still agree with probability $\sum_k \pi_k^2$, often far above zero. If your reported $A_o$ is close to that quantity, the data are compatible with **independence**, not with a shared latent truth.
 
-Like any binomial-style proportion, $A_o$ has **sampling variability**. Wide items and sparse rare classes can make point estimates noisy; the experiments in Section 8 use $n=10{,}000$ items partly to make curves visually stable. In applied work, complement point estimates with **confidence intervals** (bootstrap over items is common) and with **disaggregated** views (per-stratum agreement, confusion matrices).
+Like any binomial-style proportion, $A_o$ has **sampling variability**. Wide items and sparse rare classes can make point estimates noisy; the experiments in Section 8 use $n = 10\,000$ items partly to make curves visually stable. In applied work, complement point estimates with **confidence intervals** (bootstrap over items is common) and with **disaggregated** views (per-stratum agreement, confusion matrices).
 
 Hence the framing: treat $A_o$ as an **estimator** of overlap under your sampling scheme, and always ask what **benchmark** it should be compared to.
 
@@ -247,7 +247,7 @@ The companion codebase sweeps imbalance at fixed noise; Fleiss' $\kappa$ can sit
 
 ![Fleiss' kappa versus class imbalance at fixed annotation noise (Kappa paradox).](../figures/kappa_paradox.png)
 
-**Figure 2.** As the majority-class mass grows, expected agreement under independence grows with it; $\kappa_F$ can fall sharply even when naive overlap remains high.
+**Figure 2.** As the majority-class mass grows, expected agreement under independence grows with it; $\kappa_F$ can fall sharply even when naive overlap remains high. Note the narrower y-axis scale in the right panel.
 
 ### 5.2 Structural constraints
 
@@ -333,18 +333,18 @@ Let $\delta(c,c')$ be a **metric** between category values (nominal, ordinal, in
 From the data, build the **observed coincidence matrix** $\mathbf{O}$ (symmetric, nonnegative) and the **expected** matrix $\mathbf{E}$ under the random-pairing null that preserves marginal totals derived from $\mathbf{O}$. Define scalar disagreements
 
 $$
-D_o^\* = \sum_{c,c'} O_{cc'}\,D_{cc'},
+D_o^* = \sum_{c,c'} O_{cc'}\,D_{cc'},
 \qquad
-D_e^\* = \sum_{c,c'} E_{cc'}\,D_{cc'}.
+D_e^* = \sum_{c,c'} E_{cc'}\,D_{cc'}.
 $$
 
 **Krippendorff's alpha** is
 
 $$
-\alpha = 1 - \frac{D_o^\*}{D_e^\*}.
+\alpha = 1 - \frac{D_o^*}{D_e^*}.
 $$
 
-When $D_e^\*$ is zero (degenerate case), $\alpha$ is not defined as a finite ratio.
+When $D_e^*$ is zero (degenerate case), $\alpha$ is not defined as a finite ratio.
 
 ### 7.2 Building $\mathbf{O}$ (sketch)
 
@@ -371,16 +371,16 @@ symmetric and aligned with sampling-without-replacement intuition on pair slots.
 
 ### 7.5 Boundary behaviour
 
-Assume $D_e^\* > 0$.
+Assume $D_e^* > 0$.
 
-- **Perfect reliability** (for nominal $\delta$, all pairable judgments on a unit coincide): off-diagonal mass vanishes appropriately, $D_o^\* = 0$, hence $\alpha = 1$.
-- **Chance-level** disagreement: $D_o^\* = D_e^\*$ implies $\alpha = 0$.
-- **Systematic** disagreement beyond the null: $D_o^\* > D_e^\*$ implies $\alpha < 0$.
+- **Perfect reliability** (for nominal $\delta$, all pairable judgments on a unit coincide): off-diagonal mass vanishes appropriately, $D_o^* = 0$, hence $\alpha = 1$.
+- **Chance-level** disagreement: $D_o^* = D_e^*$ implies $\alpha = 0$.
+- **Systematic** disagreement beyond the null: $D_o^* > D_e^*$ implies $\alpha < 0$.
 
-**Reading $\alpha$ as a scaled excess.** When $D_e^\* > 0$, rearrange $\alpha = 1 - D_o^\*/D_e^\*$ as
+**Reading $\alpha$ as a scaled excess.** When $D_e^* > 0$, rearrange $\alpha = 1 - D_o^*/D_e^*$ as
 
 $$
-\alpha = \frac{D_e^\* - D_o^\*}{D_e^\*}.
+\alpha = \frac{D_e^* - D_o^*}{D_e^*}.
 $$
 
 So $\alpha$ is the **fractional reduction** of observed disagreement relative to the expected matrix under the null — analogous in spirit to how $\kappa$ expresses excess agreement relative to $1-A_e$, but built on **metric** weights rather than a single scalar $A_o$. Negative $\alpha$ means the pattern of weighted distances is **more discordant** than random pairing would predict under fixed exposure, a warning sign of **systematic** divergence (ambiguous guidelines, adversarial items, or instrument drift).
@@ -405,11 +405,11 @@ With the definition, construction, and boundary properties of $\alpha$ in place,
 
 Four simulations (Phase 4 of the codebase) isolate properties of $A_o$, $\kappa_F$, and $\alpha$. All use **fixed seeds** and are reproducible via `make experiments` or the individual `scripts/experiment_*.py` commands.
 
-They are **synthetic** on purpose: closed-form targets exist for random labelling, and grids over noise and imbalance are cheap to repeat. Translating the qualitative lessons to a live LLM API requires additional layers (calibration, adversarial prompts, human factors) that fall outside this draft — but the **algebraic** pitfalls of raw agreement and the **structural** limits of Fleiss remain.
+They are **synthetic** on purpose: closed-form targets exist for random labelling, and grids over noise and imbalance are cheap to repeat. Translating the qualitative lessons to a live LLM API requires additional layers (calibration, adversarial prompts, human factors) that fall outside this article — but the **algebraic** pitfalls of raw agreement and the **structural** limits of Fleiss remain.
 
 ### 8.1 Experiment A: random annotators (sanity check)
 
-**Setup.** Model 1 (pure random labelling), uniform $\pi$, sweep $K \in \{2,\ldots,10\}$ with $n=10{,}000$, $m=5$.
+**Setup.** Model 1 (pure random labelling), uniform $\pi$, sweep $K \in \{2,\ldots,10\}$ with $n = 10\,000$, $m=5$.
 
 **Expectation.** $A_o \approx 1/K$; $\kappa_F \approx 0$; $\alpha \approx 0$.
 
@@ -461,7 +461,7 @@ Real annotators quit mid-batch, merge requests split reviewer pools, and LLM cal
 
 ![Experiment D: $\alpha$ vs Fleiss' $\kappa$ as missing rate increases.](../figures/exp_d_missing_robustness.png)
 
-**Figure 6.** Missing data: $\alpha$ stays informative; Fleiss requires a complete matrix.
+**Figure 6.** Missing data: $\alpha$ stays informative (mean $\pm$ 1 SD over 10 seeds); Fleiss requires a complete matrix.
 
 ### 8.5 Synthesis
 

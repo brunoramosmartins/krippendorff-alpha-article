@@ -142,6 +142,25 @@ def main() -> None:
                     )
                 )
 
+    # Add skew direction indicator on y-axis (outside plot area)
+    axes[0].annotate(
+        "",
+        xy=(-0.5, n_imb - 0.3),
+        xytext=(-0.5, 0.3),
+        xycoords="data",
+        arrowprops=dict(arrowstyle="-|>", color="0.35", lw=1.8),
+        annotation_clip=False,
+    )
+    axes[0].text(
+        -0.5, n_imb + 0.15,
+        "increasing\nskew",
+        ha="center",
+        va="top",
+        fontsize=7,
+        color="0.35",
+        style="italic",
+    )
+
     fig.suptitle(
         "Experiment B: agreement trap (red box: $A_o>0.80$ and $\\alpha<0.40$)",
         fontsize=11,

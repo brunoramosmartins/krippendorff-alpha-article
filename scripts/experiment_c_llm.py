@@ -82,8 +82,9 @@ def main() -> None:
         "steepest drop\n(in this grid)",
         xy=(float(llm_grid[j + 1]), alphas_all[j + 1]),
         xytext=(0.35, min(alphas_all) + 0.05),
-        arrowprops=dict(arrowstyle="->", color="0.3"),
-        fontsize=8,
+        arrowprops=dict(arrowstyle="->", color="0.3", lw=1.5),
+        fontsize=11,
+        bbox=dict(boxstyle="round,pad=0.3", fc="white", ec="0.7", alpha=0.85),
     )
     ax.set_xlabel(r"LLM noise level $\varepsilon_{\mathrm{LLM}}$")
     ax.set_ylabel(r"Krippendorff $\alpha$ (nominal)")
