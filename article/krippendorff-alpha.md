@@ -1,26 +1,10 @@
 ---
 title: "When Agreement Is an Illusion"
-subtitle: "Statistical foundations of inter-annotator agreement — from observed agreement to Krippendorff's Alpha"
-description: >
-  Why raw observed agreement mixes signal and chance; how Cohen's and Fleiss' kappa
-  correct for chance yet fail under imbalance and missing data; how Krippendorff's
-  alpha reframes reliability through disagreement and generalises across raters and scales.
-slug: krippendorff-alpha
-language: en
-mathjax: true
-source_repository: https://github.com/brunoramosmartins/krippendorff-alpha-article
-keywords:
-  - inter-rater agreement
-  - krippendorff alpha
-  - cohen kappa
-  - fleiss kappa
-  - annotation
-  - NLP evaluation
-article_format:
-  version: 1
-  # Image paths in this file: ../figures/*.png (sibling folder to article/ in this repo).
-  # For a self-contained bundle (Markdown + figures/ in one directory), run:
-  #   python scripts/export_article_for_portfolio.py --out <path>
+description: "Statistical foundations of inter-annotator agreement — from observed agreement to Krippendorff's Alpha."
+date: 2026-04-21
+category: machine-learning
+reading_time: "30 min"
+tags: statistics, annotation, inter-rater-agreement, nlp-evaluation
 ---
 
 # When Agreement Is an Illusion
