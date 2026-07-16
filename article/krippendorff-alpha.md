@@ -159,6 +159,8 @@ The implication is clear: $A_o$ alone cannot distinguish between genuine consens
 
 ## The Kappa family
 
+The fix everyone reaches for first is disarmingly simple: measure how much the panel actually agrees, subtract how much it would have agreed by luck alone, and look at what's left over.
+
 ### The chance-correction pattern
 
 Given an observed agreement $A_o$ and an expected agreement $A_e$ under a stated **chance model**, define
@@ -227,6 +229,8 @@ Both $\kappa_C$ and $\kappa_F$ **re-express** overlap relative to a **data-drive
 
 ## Limitations of Kappa
 
+That correction is real, but it isn't bulletproof — and the two places it cracks are exactly the places real annotation work tends to sit.
+
 ### The Kappa paradox
 
 When one category is **very prevalent**, independent raters still agree often because $\bar P_e = \sum_k p_k^2$ is dominated by $p_{\text{major}}^2$. A high **raw** agreement can therefore coexist with **low** $\kappa$: the coefficient is doing its job, but readers who only track $A_o$ feel a **paradox**.
@@ -267,7 +271,7 @@ This matters for the opening dilemma more than it first looks. The decision abou
 
 ### Why shift the lens
 
-Raw agreement and Kappa-style numerators count **matches**: how many pairs gave the same label? An equivalent dual view counts **mismatches** weighted by how far apart the assigned categories are. For nominal data, "distance" is binary — same or not. For interval data, squared differences penalise large errors more than small ones. This dual view turns out to be more general: it naturally accommodates **measurement scales** beyond the nominal and leads to a single formula that unifies all cases.
+Here is the small change of viewpoint that makes everything downstream work. Raw agreement and Kappa-style numerators count **matches**: how many pairs gave the same label? Flip it over and count **mismatches** instead, weighted by how far apart the assigned categories are. For nominal data, "distance" is binary — same or not. For interval data, squared differences penalise large errors more than small ones. This dual view turns out to be more general: it naturally accommodates **measurement scales** beyond the nominal and leads to a single formula that unifies all cases.
 
 ### The reliability matrix
 
@@ -317,6 +321,8 @@ The conceptual shift is simple: instead of "how often do we agree?", ask **"how 
 ---
 
 ## Krippendorff's Alpha
+
+Everything so far has been building toward one coefficient that keeps its footing under the conditions our panel actually worked in — many raters, missing labels, ordered scales. Here it is.
 
 ### Definition
 
@@ -421,7 +427,7 @@ $$
 
 This region exists because $A_e = \sum_k \pi_k^2$ grows with class imbalance. When $\pi_{\text{major}}$ nears 1, even noisy annotators agree on the dominant class most of the time, inflating $A_o$ without genuine item-level signal.
 
-**Result.** Heatmaps of $A_o$ and $\alpha$ show a visible wedge occupying $\mathcal{T}$. A concrete example: with $\pi = (0.85, 0.10, 0.05)$ and $\varepsilon = 0.05$, one obtains $A_o \approx 0.84$ while $\alpha \approx 0.35$. Stakeholders see a comfortable raw percentage; the chance-corrected coefficient reveals the panel is only modestly better than a prevalence-aware random benchmark. The operational lesson: put **both** views in the same table by default.
+**Result.** Heatmaps of $A_o$ and $\alpha$ show a visible wedge occupying $\mathcal{T}$. A concrete example: with $\pi = (0.85, 0.10, 0.05)$ and $\varepsilon = 0.05$, one obtains $A_o \approx 0.84$ while $\alpha \approx 0.35$. Stakeholders see a comfortable raw percentage; the chance-corrected coefficient reveals the panel is only modestly better than a prevalence-aware random benchmark. The operational lesson: put **both** views in the same table by default. This heatmap is the introduction's warning drawn as a map — anywhere inside the wedge, a model or a panel can post a reassuring raw score while telling you almost nothing.
 
 ![Experiment B: heatmaps of $\alpha$ and $A_o$ over imbalance and noise; red boxes mark the trap region.](../figures/exp_b_agreement_trap_heatmap.png)
 
@@ -429,7 +435,7 @@ This region exists because $A_e = \sum_k \pi_k^2$ grows with class imbalance. Wh
 
 **Setup.** Model 2 with three "human" annotators ($\varepsilon = 0.10$) and one "LLM" annotator ($\varepsilon$ swept in $[0, 0.5]$) on a three-class task.
 
-**Result.** $\alpha$ tracks panel quality; adding a noisier rater reduces panel $\alpha$ relative to humans-only. The sensitivity curve makes the dose–response visible.
+**Result.** $\alpha$ tracks panel quality; adding a noisier rater reduces panel $\alpha$ relative to humans-only. The sensitivity curve makes the dose–response visible. This is the experiment closest to the opening question: drop a consistent-but-noisier model into the panel and $\alpha$ is what tells you whether it actually helped or just quietly blended in.
 
 **Important caveat.** This experiment models LLM error as **symmetric i.i.d. noise** (Model 2). In practice, LLM errors are **structured**: a model may systematically over-predict the majority class, exhibit prompt-dependent bias, or fail on specific semantic patterns. Symmetric noise is a useful baseline, but real LLM evaluation requires additional diagnostics — confusion matrices stratified by class, adversarial probes, and analysis of **where** (not just how often) disagreements occur. A scenario with **directional bias** (e.g. the LLM always predicts the majority class when uncertain) would likely show $\alpha$ degrading faster than the symmetric case predicts.
 
