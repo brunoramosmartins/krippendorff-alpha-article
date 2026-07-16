@@ -66,13 +66,16 @@ def main() -> None:
     ax.fill_between(
         ks, 0.0, ao_list, color="#1f77b4", alpha=0.10, zorder=0,
     )
-    ax.annotate(
-        "everything below the curve is\nagreement produced by pure chance",
-        xy=(4, ao_list[2] / 2),
-        xytext=(5.2, 0.30),
+    # Region label (no arrow — it names the shaded band itself).
+    ax.text(
+        4.7,
+        0.115,
+        "everything in this shaded band is\nagreement produced by pure chance",
         fontsize=9,
         color="#1f4e79",
-        arrowprops=dict(arrowstyle="->", color="#1f4e79", lw=1.1),
+        ha="center",
+        va="center",
+        style="italic",
     )
 
     # Empirical A_o is the star; 1/K is a faint reference it lands exactly on.
